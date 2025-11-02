@@ -1,0 +1,145 @@
+@model TaskManagementSystem.Models.TaskItem
+
+@{
+    ViewData["Title"] = "Task Details";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h3><i class="bi bi-eye"></i> Task Details</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Title:</dt>
+                        <dd class="col-sm-9">
+                            <h5 class="@(Model.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                @Model.Title
+                            </h5>
+                        </dd>
+
+                        <dt class="col-sm-3">Description:</dt>
+                        <dd class="col-sm-9">
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <p>@Model.Description</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No description available</p>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Status:</dt>
+                        <dd class="col-sm-9">
+                            @{
+                                var statusBadge = Model.Status switch
+                                {
+                                    TaskManagementSystem.Models.TaskStatus.Todo => "bg-secondary",
+                                    TaskManagementSystem.Models.TaskStatus.InProgress => "bg-info",
+                                    TaskManagementSystem.Models.TaskStatus.Completed => "bg-success",
+                                    _ => "bg-secondary"
+                                };
+                                var statusText = Model.Status switch
+                                {
+                                    TaskManagementSystem.Models.TaskStatus.Todo => "Todo",
+                                    TaskManagementSystem.Models.TaskStatus.InProgress => "In Progress",
+                                    TaskManagementSystem.Models.TaskStatus.Completed => "Completed",
+                                    _ => "Unknown"
+                                };
+                            }
+                            <span class="badge @statusBadge">@statusText</span>
+                        </dd>
+
+                        <dt class="col-sm-3">Priority:</dt>
+                        <dd class="col-sm-9">
+                            @{
+                                var priorityBadge = Model.Priority switch
+                                {
+                                    TaskManagementSystem.Models.TaskPriority.Low => "bg-secondary",
+                                    TaskManagementSystem.Models.TaskPriority.Medium => "bg-primary",
+                                    TaskManagementSystem.Models.TaskPriority.High => "bg-warning",
+                                    TaskManagementSystem.Models.TaskPriority.Urgent => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                                var priorityText = Model.Priority switch
+                                {
+                                    TaskManagementSystem.Models.TaskPriority.Low => "Low",
+                                    TaskManagementSystem.Models.TaskPriority.Medium => "Medium",
+                                    TaskManagementSystem.Models.TaskPriority.High => "High",
+                                    TaskManagementSystem.Models.TaskPriority.Urgent => "Urgent",
+                                    _ => "Unknown"
+                                };
+                            }
+                            <span class="badge @priorityBadge">@priorityText</span>
+                        </dd>
+
+                        <dt class="col-sm-3">Created Date:</dt>
+                        <dd class="col-sm-9">
+                            <i class="bi bi-calendar-plus"></i> @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                        </dd>
+
+                        @if (Model.DueDate.HasValue)
+                        {
+                            <dt class="col-sm-3">Due Date:</dt>
+                            <dd class="col-sm-9">
+                                <i class="bi bi-calendar-check"></i> @Model.DueDate.Value.ToString("dd/MM/yyyy")
+                                @{
+                                    var daysRemaining = (Model.DueDate.Value - DateTime.Now).Days;
+                                    if (daysRemaining < 0)
+                                    {
+                                        <span class="badge bg-danger ms-2">Overdue by @Math.Abs(daysRemaining) day(s)</span>
+                                    }
+                                    else if (daysRemaining == 0)
+                                    {
+                                        <span class="badge bg-warning ms-2">Due Today</span>
+                                    }
+                                    else if (daysRemaining <= 3)
+                                    {
+                                        <span class="badge bg-warning ms-2">@daysRemaining day(s) left</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info ms-2">@daysRemaining day(s) left</span>
+                                    }
+                                }
+                            </dd>
+                        }
+
+                        <dt class="col-sm-3">Completion:</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.IsCompleted)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle-fill"></i> Completed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-clock"></i> Not Completed
+                                </span>
+                            }
+                        </dd>
+                    </dl>
+
+                    <hr />
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
