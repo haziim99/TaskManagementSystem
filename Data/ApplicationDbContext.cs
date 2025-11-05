@@ -17,14 +17,13 @@ namespace TaskManagementSystem.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Add seed data
             modelBuilder.Entity<TaskItem>().HasData(
                 new TaskItem
                 {
                     Id = 1,
                     Title = "Create Database",
                     Description = "Design and create the project database",
-                    CreatedDate = DateTime.Now,
+                    CreatedDate = new DateTime(2025, 1, 1),
                     Status = MyTaskStatus.Completed,
                     Priority = TaskPriority.High,
                     IsCompleted = true
@@ -34,8 +33,8 @@ namespace TaskManagementSystem.Data
                     Id = 2,
                     Title = "Develop User Interface",
                     Description = "Design a professional and user-friendly interface",
-                    CreatedDate = DateTime.Now,
-                    DueDate = DateTime.Now.AddDays(7),
+                    CreatedDate = new DateTime(2025, 1, 2),
+                    DueDate = new DateTime(2025, 1, 9),
                     Status = MyTaskStatus.InProgress,
                     Priority = TaskPriority.Medium,
                     IsCompleted = false
@@ -45,8 +44,8 @@ namespace TaskManagementSystem.Data
                     Id = 3,
                     Title = "Add Authentication System",
                     Description = "Implement login and registration system",
-                    CreatedDate = DateTime.Now,
-                    DueDate = DateTime.Now.AddDays(14),
+                    CreatedDate = new DateTime(2025, 1, 3),
+                    DueDate = new DateTime(2025, 1, 17),
                     Status = MyTaskStatus.Todo,
                     Priority = TaskPriority.High,
                     IsCompleted = false

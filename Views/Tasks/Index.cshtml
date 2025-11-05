@@ -1,194 +1,117 @@
 @model IEnumerable<TaskManagementSystem.Models.TaskItem>
 
-@{
-    ViewData["Title"] = "Task List";
-}
-
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h1 class="display-4">
-                <i class="bi bi-list-task"></i> Task Management System
-            </h1>
-        </div>
-    </div>
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    @{
+    ViewData["Title"] = "Tasks";
     }
 
-    <!-- Search and Filter Section -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form asp-action="Index" method="get">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" name="searchString" 
-                               placeholder="🔍 Search tasks..." 
-                               value="@ViewData["CurrentFilter"]" />
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select" name="status">
-                            <option value="">All Statuses</option>
-                            <option value="0" selected="@(ViewData["StatusFilter"]?.ToString() == "0")">Todo</option>
-                            <option value="1" selected="@(ViewData["StatusFilter"]?.ToString() == "1")">In Progress</option>
-                            <option value="2" selected="@(ViewData["StatusFilter"]?.ToString() == "2")">Completed</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select class="form-select" name="priority">
-                            <option value="">All Priorities</option>
-                            <option value="0" selected="@(ViewData["PriorityFilter"]?.ToString() == "0")">Low</option>
-                            <option value="1" selected="@(ViewData["PriorityFilter"]?.ToString() == "1")">Medium</option>
-                            <option value="2" selected="@(ViewData["PriorityFilter"]?.ToString() == "2")">High</option>
-                            <option value="3" selected="@(ViewData["PriorityFilter"]?.ToString() == "3")">Urgent</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-search"></i> Search
-                        </button>
-                    </div>
+    <div class="container main-container">
+        <div class="row align-items-center mb-3">
+            <div class="col-md-6 mb-2 mb-md-0">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control search-input border-start-0" placeholder="Search for a task..." />
                 </div>
-            </form>
+            </div>
+            <div class="col-md-6 text-end">
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> New Task
+                </a>
+            </div>
         </div>
-    </div>
 
-    <!-- Add New Task Button -->
-    <div class="mb-3">
-        <a asp-action="Create" class="btn btn-success btn-lg">
-            <i class="bi bi-plus-circle"></i> Add New Task
-        </a>
-    </div>
+        <div class="mb-3">
+            <button class="btn btn-outline-secondary filter-btn active" data-filter="all">All</button>
+            <button class="btn btn-outline-secondary filter-btn" data-filter="todo">Todo</button>
+            <button class="btn btn-outline-secondary filter-btn" data-filter="inprogress">In Progress</button>
+            <button class="btn btn-outline-secondary filter-btn" data-filter="completed">Completed</button>
+        </div>
 
-    <!-- Tasks List -->
-    <div class="row">
-        @if (Model.Any())
+        <div class="content-section">
+            <h2 class="mb-4">
+                <i class="bi bi-list-task"></i> Current Tasks
+            </h2>
+
+            @if (Model != null && Model.Any())
         {
             @foreach (var task in Model)
             {
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm task-card @(task.IsCompleted ? "border-success" : "")">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="badge @GetPriorityBadgeClass(task.Priority)">
-                                @GetPriorityText(task.Priority)
+            <div class="card mb-3 task-card priority-@task.Priority.ToString().ToLower()" data-status="@task.Status.ToString().ToLower()">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">@task.Title</h5>
+                        <span class="badge
+                                @(task.Priority == TaskManagementSystem.Models.TaskPriority.Low ? "bg-success" :
+                                  task.Priority == TaskManagementSystem.Models.TaskPriority.Medium ? "bg-primary" :
+                                  task.Priority == TaskManagementSystem.Models.TaskPriority.High ? "bg-warning text-dark" :
+                                  "bg-danger")">
+                            @task.Priority
+                        </span>
+                    </div>
+                    <p class="card-text">@task.Description</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge
+                                    @(task.Status == TaskManagementSystem.Models.TaskStatus.Todo ? "bg-secondary" :
+                                      task.Status == TaskManagementSystem.Models.TaskStatus.InProgress ? "bg-info text-dark" :
+                                      "bg-success") me-2">
+                                @task.Status
                             </span>
-                            <span class="badge @GetStatusBadgeClass(task.Status)">
-                                @GetStatusText(task.Status)
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title @(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
-                                @task.Title
-                            </h5>
-                            <p class="card-text text-muted">
-                                @(string.IsNullOrEmpty(task.Description) ? "No description" : 
-                                  (task.Description.Length > 100 ? task.Description.Substring(0, 100) + "..." : task.Description))
-                            </p>
-                            <div class="mt-3">
-                                <small class="text-muted">
-                                    <i class="bi bi-calendar-plus"></i> Created Date: @task.CreatedDate.ToString("dd/MM/yyyy")
-                                </small>
-                                @if (task.DueDate.HasValue)
+                            @if (task.DueDate.HasValue)
                                 {
-                                    <br />
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar-check"></i> Due Date: @task.DueDate.Value.ToString("dd/MM/yyyy")
-                                    </small>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar3"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
+                            </small>
                                 }
-                            </div>
                         </div>
-                        <div class="card-footer bg-transparent">
-                            <div class="btn-group w-100" role="group">
-                                <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-info" title="Details">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-warning" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form asp-action="ToggleComplete" asp-route-id="@task.Id" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-@(task.IsCompleted ? "secondary" : "success")" title="Toggle Status">
-                                        <i class="bi bi-check2-@(task.IsCompleted ? "square" : "circle")"></i>
-                                    </button>
-                                </form>
-                                <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-sm btn-danger" title="Delete">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
+                        <div>
+                            <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-outline-info ms-2">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-sm btn-outline-danger ms-2">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
+            </div>
             }
         }
         else
         {
-            <div class="col-12">
-                <div class="alert alert-info text-center" role="alert">
-                    <i class="bi bi-info-circle"></i> No tasks currently. Start by adding a new task!
-                </div>
-            </div>
+            <p class="text-muted">No tasks found.</p>
         }
+        </div>
     </div>
-</div>
 
-@functions {
-    string GetPriorityBadgeClass(TaskManagementSystem.Models.TaskPriority priority)
-    {
-        return priority switch
-        {
-            TaskManagementSystem.Models.TaskPriority.Low => "bg-secondary",
-            TaskManagementSystem.Models.TaskPriority.Medium => "bg-primary",
-            TaskManagementSystem.Models.TaskPriority.High => "bg-warning",
-            TaskManagementSystem.Models.TaskPriority.Urgent => "bg-danger",
-            _ => "bg-secondary"
-        };
-    }
+    @section Scripts {
+        <script>
+    const searchInput = document.querySelector('.main-container .search-input');
+    const taskCards = document.querySelectorAll('.task-card');
+    searchInput?.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        taskCards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const description = card.querySelector('.card-text').textContent.toLowerCase();
+            card.style.display = (title.includes(query) || description.includes(query)) ? '' : 'none';
+        });
+    });
 
-    string GetPriorityText(TaskManagementSystem.Models.TaskPriority priority)
-    {
-        return priority switch
-        {
-            TaskManagementSystem.Models.TaskPriority.Low => "Low",
-            TaskManagementSystem.Models.TaskPriority.Medium => "Medium",
-            TaskManagementSystem.Models.TaskPriority.High => "High",
-            TaskManagementSystem.Models.TaskPriority.Urgent => "Urgent",
-            _ => "Not specified"
-        };
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            filterButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            taskCards.forEach(card => {
+                const status = card.dataset.status;
+                card.style.display = (filter === 'all' || status === filter) ? '' : 'none';
+            });
+        });
+    });
+        </script>
     }
-
-    string GetStatusBadgeClass(TaskManagementSystem.Models.TaskStatus status)
-    {
-        return status switch
-        {
-            TaskManagementSystem.Models.TaskStatus.Todo => "bg-secondary",
-            TaskManagementSystem.Models.TaskStatus.InProgress => "bg-info",
-            TaskManagementSystem.Models.TaskStatus.Completed => "bg-success",
-            _ => "bg-secondary"
-        };
-    }
-
-    string GetStatusText(TaskManagementSystem.Models.TaskStatus status)
-    {
-        return status switch
-        {
-            TaskManagementSystem.Models.TaskStatus.Todo => "Todo",
-            TaskManagementSystem.Models.TaskStatus.InProgress => "In Progress",
-            TaskManagementSystem.Models.TaskStatus.Completed => "Completed",
-            _ => "Not specified"
-        };
-    }
-}
-
-<style>
-    .task-card {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .task-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-    }
-</style>

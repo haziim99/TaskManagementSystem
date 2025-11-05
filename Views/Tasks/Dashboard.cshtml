@@ -1,0 +1,129 @@
+@model IEnumerable<TaskManagementSystem.Models.TaskItem>
+
+    @{
+    ViewData["Title"] = "Dashboard";
+    }
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-check-circle-fill"></i> Task Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" asp-action="Dashboard"><i class="bi bi-house-door"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-action="Index"><i class="bi bi-list-task"></i> Tasks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-graph-up"></i> Analytics</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-bell"></i> Notifications</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-person-circle"></i> Profile</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Stats -->
+    <div class="container main-container">
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon primary">
+                        <i class="bi bi-list-check"></i>
+                    </div>
+                    <div class="stats-number">@ViewBag.TotalTasks</div>
+                    <div class="stats-label">Total Tasks</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon success">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="stats-number">@ViewBag.CompletedTasks</div>
+                    <div class="stats-label">Completed</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon warning">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div class="stats-number">@ViewBag.InProgressTasks</div>
+                    <div class="stats-label">In Progress</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon danger">
+                        <i class="bi bi-exclamation-circle"></i>
+                    </div>
+                    <div class="stats-number">@ViewBag.OverdueTasks</div>
+                    <div class="stats-label">Overdue</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tasks -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="bi bi-clock-history"></i> Recent Tasks
+            </h2>
+
+            @if (Model != null && Model.Any())
+        {
+            @foreach (var task in Model.Take(5))
+            {
+            <div class="card mb-3 task-card priority-@task.Priority.ToString().ToLower()">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">@task.Title</h5>
+                        <span class="badge bg-secondary">@task.Priority.ToString()</span>
+                    </div>
+                    <p class="card-text">@task.Description</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-info text-dark me-2">@task.Status.ToString()</span>
+                            @if (task.DueDate.HasValue)
+                                {
+                            <small class="text-muted">
+                                <i class="bi bi-calendar3"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
+                            </small>
+                                }
+                        </div>
+                        <div>
+                            <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">No recent tasks available.</p>
+        }
+
+            <div class="text-center mt-4">
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="bi bi-list-ul"></i> View All Tasks
+                </a>
+            </div>
+        </div>
+    </div>

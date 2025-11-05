@@ -46,15 +46,11 @@ namespace TaskManagementSystem.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var taskItem = await _context.Tasks.FirstOrDefaultAsync(m => m.Id == id);
             if (taskItem == null)
-            {
                 return NotFound();
-            }
 
             return View(taskItem);
         }
@@ -62,7 +58,13 @@ namespace TaskManagementSystem.Controllers
         // GET: Tasks/Create
         public IActionResult Create()
         {
-            return View();
+            var taskItem = new TaskItem
+            {
+                Status = MyTaskStatus.Todo,
+                Priority = TaskPriority.Medium,
+                IsCompleted = false
+            };
+            return View(taskItem);
         }
 
         // POST: Tasks/Create
@@ -85,15 +87,12 @@ namespace TaskManagementSystem.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var taskItem = await _context.Tasks.FindAsync(id);
             if (taskItem == null)
-            {
                 return NotFound();
-            }
+
             return View(taskItem);
         }
 
@@ -103,9 +102,7 @@ namespace TaskManagementSystem.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,CreatedDate,DueDate,Status,Priority,IsCompleted")] TaskItem taskItem)
         {
             if (id != taskItem.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
@@ -118,13 +115,9 @@ namespace TaskManagementSystem.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!TaskItemExists(taskItem.Id))
-                    {
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -135,15 +128,11 @@ namespace TaskManagementSystem.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var taskItem = await _context.Tasks.FirstOrDefaultAsync(m => m.Id == id);
             if (taskItem == null)
-            {
                 return NotFound();
-            }
 
             return View(taskItem);
         }
@@ -170,9 +159,7 @@ namespace TaskManagementSystem.Controllers
         {
             var taskItem = await _context.Tasks.FindAsync(id);
             if (taskItem == null)
-            {
                 return NotFound();
-            }
 
             taskItem.IsCompleted = !taskItem.IsCompleted;
             taskItem.Status = taskItem.IsCompleted ? MyTaskStatus.Completed : MyTaskStatus.InProgress;
@@ -181,6 +168,43 @@ namespace TaskManagementSystem.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // Toggle Priority
+        [HttpPost]
+        public async Task<IActionResult> TogglePriority(int id)
+        {
+            var taskItem = await _context.Tasks.FindAsync(id);
+            if (taskItem == null) return NotFound();
+
+            taskItem.Priority = taskItem.Priority switch
+            {
+                TaskPriority.Low => TaskPriority.Medium,
+                TaskPriority.Medium => TaskPriority.High,
+                TaskPriority.High => TaskPriority.Low,
+                _ => TaskPriority.Medium
+            };
+
+            _context.Update(taskItem);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Dashboard
+        public async Task<IActionResult> Dashboard()
+        {
+            var totalTasks = await _context.Tasks.CountAsync();
+            var completedTasks = await _context.Tasks.CountAsync(t => t.Status == MyTaskStatus.Completed);
+            var inProgressTasks = await _context.Tasks.CountAsync(t => t.Status == MyTaskStatus.InProgress);
+            var overdueTasks = await _context.Tasks.CountAsync(t => t.DueDate < DateTime.Now && t.Status != MyTaskStatus.Completed);
+
+            ViewBag.TotalTasks = totalTasks;
+            ViewBag.CompletedTasks = completedTasks;
+            ViewBag.InProgressTasks = inProgressTasks;
+            ViewBag.OverdueTasks = overdueTasks;
+
+            return View(await _context.Tasks.OrderByDescending(t => t.CreatedDate).ToListAsync());
         }
 
         private bool TaskItemExists(int id)

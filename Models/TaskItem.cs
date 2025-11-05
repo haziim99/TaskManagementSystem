@@ -9,10 +9,10 @@ namespace TaskManagementSystem.Models
 
         [Required(ErrorMessage = "Task title is required")]
         [StringLength(200, ErrorMessage = "The title must not exceed 200 characters")]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty; // ????? ???? ????????
 
         [StringLength(1000, ErrorMessage = "The description must not exceed 1000 characters")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty; // ????? ???? ????????
 
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.Now;

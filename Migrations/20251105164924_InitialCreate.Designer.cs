@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskManagementSystem.Data;
 
@@ -11,9 +12,11 @@ using TaskManagementSystem.Data;
 namespace TaskManagementSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251105164924_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,7 +66,7 @@ namespace TaskManagementSystem.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedDate = new DateTime(2025, 11, 5, 17, 49, 24, 651, DateTimeKind.Local).AddTicks(3802),
                             Description = "Design and create the project database",
                             IsCompleted = true,
                             Priority = 2,
@@ -73,9 +76,9 @@ namespace TaskManagementSystem.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedDate = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedDate = new DateTime(2025, 11, 5, 17, 49, 24, 651, DateTimeKind.Local).AddTicks(4178),
                             Description = "Design a professional and user-friendly interface",
-                            DueDate = new DateTime(2025, 1, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DueDate = new DateTime(2025, 11, 12, 17, 49, 24, 651, DateTimeKind.Local).AddTicks(4179),
                             IsCompleted = false,
                             Priority = 1,
                             Status = 1,
@@ -84,9 +87,9 @@ namespace TaskManagementSystem.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedDate = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedDate = new DateTime(2025, 11, 5, 17, 49, 24, 651, DateTimeKind.Local).AddTicks(4353),
                             Description = "Implement login and registration system",
-                            DueDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DueDate = new DateTime(2025, 11, 19, 17, 49, 24, 651, DateTimeKind.Local).AddTicks(4354),
                             IsCompleted = false,
                             Priority = 2,
                             Status = 0,
