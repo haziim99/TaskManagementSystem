@@ -1,0 +1,222 @@
+@model TaskManagementSystem.ViewModels.AnalyticsViewModel
+
+@{
+    ViewData["Title"] = "Analytics";
+}
+
+<div class="main-container">
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon primary">
+                    <i class="bi bi-list-check"></i>
+                </div>
+                <div class="stats-number">@Model.TotalTasks</div>
+                <div class="stats-label">Total Tasks</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stats-number">@Model.CompletedTasks</div>
+                <div class="stats-label">Completed</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="stats-number">@Model.InProgressTasks</div>
+                <div class="stats-label">In Progress</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon danger">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+                <div class="stats-number">@Model.CompletionRate%</div>
+                <div class="stats-label">Completion Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="content-section">
+                <h2 class="section-title">
+                    <i class="bi bi-bar-chart"></i>
+                    Tasks by Priority
+                </h2>
+                <canvas id="priorityChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="content-section">
+                <h2 class="section-title">
+                    <i class="bi bi-pie-chart"></i>
+                    Tasks by Status
+                </h2>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="content-section">
+                <h2 class="section-title">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Tasks Over Time
+                </h2>
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="content-section">
+                <h2 class="section-title">
+                    <i class="bi bi-trophy"></i>
+                    Performance Metrics
+                </h2>
+                <div class="metric-item">
+                    <div class="metric-label">Average Completion Time</div>
+                    <div class="metric-value">@Model.AverageCompletionTime.ToString("0.0") days</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Tasks Completed This Week</div>
+                    <div class="metric-value">@Model.TasksCompletedThisWeek tasks</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Most Productive Day</div>
+                    <div class="metric-value">@Model.MostProductiveDay</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="content-section">
+                <h2 class="section-title">
+                    <i class="bi bi-lightbulb"></i>
+                    Insights
+                </h2>
+
+                @if (Model.CompletedTasks > 0)
+                {
+                <div class="insight-item insight-success">
+                    <i class="bi bi-check-circle"></i>
+                    <p>Great job! You completed @Model.CompletedTasks tasks.</p>
+                </div>
+                }
+
+                @if (Model.OverdueTasks > 0)
+                {
+                <div class="insight-item insight-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p>You have @Model.OverdueTasks overdue tasks. Consider prioritizing them.</p>
+                </div>
+                }
+                else
+                {
+                <div class="insight-item insight-success">
+                    <i class="bi bi-check-circle"></i>
+                    <p>Excellent! You have no overdue tasks.</p>
+                </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.MostProductiveDay) && Model.MostProductiveDay != "N/A")
+                {
+                <div class="insight-item insight-info">
+                    <i class="bi bi-info-circle"></i>
+                    <p>Your productivity peaks on @Model.MostProductiveDay.</p>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    const primaryColor = '#6366f1';
+    const secondaryColor = '#8b5cf6';
+    const successColor = '#10b981';
+    const warningColor = '#f59e0b';
+    const dangerColor = '#ef4444';
+
+    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+    new Chart(priorityCtx, {
+        type: 'bar',
+        data: {
+            labels: [@Html.Raw(string.Join(",", Model.TasksByPriority.Keys.Select(k => $"'{k}'")))],
+            datasets: [{
+                label: 'Tasks',
+                data: [@string.Join(",", Model.TasksByPriority.Values)],
+                backgroundColor: [successColor, warningColor, '#f97316', dangerColor],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Todo', 'In Progress', 'Completed'],
+            datasets: [{
+                data: [@Model.TodoTasks, @Model.InProgressTasks, @Model.CompletedTasks],
+                backgroundColor: [primaryColor, warningColor, successColor],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: [@Html.Raw(string.Join(",", Model.TasksByMonth.Keys.Select(k => $"'{k}'")))],
+            datasets: [{
+                label: 'Tasks Created',
+                data: [@string.Join(",", Model.TasksByMonth.Values)],
+                borderColor: primaryColor,
+                backgroundColor: `${primaryColor}20`,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    </script>
+}

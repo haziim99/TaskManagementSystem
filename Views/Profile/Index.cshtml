@@ -1,0 +1,200 @@
+@model TaskManagementSystem.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="main-container">
+    <div class="row">
+        <!-- Sidebar: Profile Image & Stats -->
+        <div class="col-lg-4 mb-4">
+            <div class="content-section text-center">
+                <img src="@Model.ProfileImage" alt="Profile"
+                     class="rounded-circle mb-3"
+                     style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #6366f1;">
+                <h3 class="mb-1">@Model.FullName</h3>
+                <p class="text-muted mb-3">@Model.JobTitle</p>
+                <a asp-action="Edit" class="btn btn-primary w-100">
+                    <i class="bi bi-pencil"></i> Edit Profile
+                </a>
+            </div>
+
+            <div class="content-section mt-4">
+                <h5 class="mb-3">
+                    <i class="bi bi-info-circle"></i> Personal Information
+                </h5>
+                <div class="info-item">
+                    <strong><i class="bi bi-envelope"></i> Email:</strong>
+                    <p>@Model.Email</p>
+                </div>
+                <div class="info-item">
+                    <strong><i class="bi bi-telephone"></i> Phone:</strong>
+                    <p>@(Model.PhoneNumber ?? "Not provided")</p>
+                </div>
+                <div class="info-item">
+                    <strong><i class="bi bi-calendar"></i> Member Since:</strong>
+                    <p>@Model.JoinDate.ToString("MMMM dd, yyyy")</p>
+                </div>
+            </div>
+
+            <div class="content-section mt-4">
+                <h5 class="mb-3">
+                    <i class="bi bi-list-check"></i> Stats
+                </h5>
+                <div class="stats-card mb-2">
+                    <div class="stats-icon primary">
+                        <i class="bi bi-list-check"></i>
+                    </div>
+                    <div class="stats-number">@Model.TotalTasks</div>
+                    <div class="stats-label">Total Tasks</div>
+                </div>
+                <div class="stats-card mb-2">
+                    <div class="stats-icon success">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="stats-number">@Model.CompletedTasks</div>
+                    <div class="stats-label">Completed</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-icon warning">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div class="stats-number">@(Model.TotalTasks - Model.CompletedTasks)</div>
+                    <div class="stats-label">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: About Me & Security -->
+        <div class="col-lg-8">
+            <div class="content-section mb-4">
+                <h4 class="mb-3">
+                    <i class="bi bi-person"></i> About Me
+                </h4>
+                @if (!string.IsNullOrEmpty(Model.Bio))
+                {
+                <p>@Model.Bio</p>
+                }
+                else
+                {
+                <p class="text-muted"><em>No bio added yet. Click "Edit Profile" to add your bio.</em></p>
+                }
+            </div>
+
+            <div class="content-section mb-4">
+                <h4 class="mb-3">
+                    <i class="bi bi-graph-up"></i> Performance Overview
+                </h4>
+                <div class="progress mb-3" style="height: 30px;">
+                    @{
+                        var completionRate = Model.TotalTasks > 0
+                            ? Math.Round((double)Model.CompletedTasks / Model.TotalTasks * 100, 1)
+                            : 0;
+                    }
+                    <div class="progress-bar bg-success"
+                         role="progressbar"
+                         style="width: @completionRate%"
+                         aria-valuenow="@completionRate"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                        @completionRate% Complete
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-success">@Model.CompletedTasks</h5>
+                        <small class="text-muted">Completed Tasks</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-primary">@(Model.TotalTasks - Model.CompletedTasks)</h5>
+                        <small class="text-muted">Remaining Tasks</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h4 class="mb-3">
+                    <i class="bi bi-shield-lock"></i> Security Settings
+                </h4>
+                <div class="security-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Password</h5>
+                            <p class="text-muted mb-0">Last changed 3 months ago</p>
+                        </div>
+                        <button class="btn btn-outline-primary">Change Password</button>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Two-Factor Authentication</h5>
+                            <p class="text-muted mb-0">Add an extra layer of security</p>
+                        </div>
+                        <button class="btn btn-outline-primary">Enable</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-item {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-item strong {
+            color: #6366f1;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            margin: 0;
+            color: #666;
+        }
+
+    .stats-card {
+        display: flex;
+        align-items: center;
+        border: 1px solid #e0e0e0;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .stats-icon {
+        font-size: 24px;
+        margin-right: 10px;
+    }
+
+        .stats-icon.primary {
+            color: #6366f1;
+        }
+
+        .stats-icon.success {
+            color: #28a745;
+        }
+
+        .stats-icon.warning {
+            color: #ffc107;
+        }
+
+    .stats-number {
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .stats-label {
+        font-size: 14px;
+        color: #666;
+    }
+</style>

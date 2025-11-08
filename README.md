@@ -1,96 +1,267 @@
-# 📋 Task Management System
+# 🧩 Task Management System v2.0 + Role-Based Access Control
 
-A comprehensive task management system built using ASP.NET Core MVC and Entity Framework Core.
+A full-featured **Task Management System** built with **ASP.NET Core MVC 7.0**, **Entity Framework Core**, and **SQL Server**, supporting **Admin**, **Manager**, and **User** roles, dynamic notifications, analytics, task assignment, and a modern responsive UI.
 
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-7.0-blue)
-![C#](https://img.shields.io/badge/C%23-11.0-purple)
-![License](https://img.shields.io/badge/license-MIT-green)
+---
 
-## ✨ Features
+## 🔥 Features Overview
 
-- ✅ **Full Task Management** - Create, Read, Update, Delete (CRUD)
-- 🔍 **Advanced Search & Filtering** - Search by title, status, and priority
-- 🎯 **Multiple Priorities** - Low, Medium, High, Urgent
-- 📊 **Task Statuses** - Todo, In Progress, Completed
-- 📅 **Due Dates** - Track deadlines
-- 🎨 **Modern UI** - Responsive design using Bootstrap 5
-- 🗄️ **SQL Server Database** - Secure data storage
-- 📱 **Fully Responsive** - Works on all devices
-- 📊 **Dashboard View** - Quick statistics for tasks (Total, Completed, In Progress, Overdue)
+### Task Management
+- ✅ Create, Read, Update, Delete tasks
+- 🔍 Search & filter tasks by title, priority, status
+- 🎯 Task statuses: Todo / In Progress / Completed
+- ⏰ Overdue detection & due tomorrow alerts
+- 👥 Task assignment (Manager/Admin)
+- 🔔 Real-time notifications on assignments and completions
 
-## 🛠️ Technologies Used
+### User & Profile
+- 👤 User profile with personal info, bio, profile picture
+- 🧮 Task statistics: Total, Completed, Pending tasks
+- 🔒 Password change & optional 2FA support
 
-- **Backend**: ASP.NET Core MVC 7.0
-- **Language**: C# 11.0
-- **Database**: SQL Server / LocalDB
-- **ORM**: Entity Framework Core
-- **Frontend**: HTML5, CSS3, Bootstrap 5
-- **Icons**: Bootstrap Icons
-- **Version Control**: Git & GitHub
+### Analytics & Dashboard
+- 📊 Performance trends & task completion charts
+- ✅ Visual summary: Completed, Pending, Overdue
+- 📈 Team analytics for Managers
+- 🛡️ Admin panel for full system overview
 
-## 📋 Project Structure
+### Modern UI
+- 💡 Responsive design with Bootstrap 5 & icons
+- 🗄️ Organized MVC structure for maintainable code
+- 🔔 Navbar shows notifications & role badges
+- ⚡ Dynamic modals & dropdowns
+
+---
+
+## 👥 Role Definitions
+
+| Role    | Permissions |
+|---------|-------------|
+| **User** | View/complete assigned tasks only |
+| **Manager** | Create tasks, assign to users, view created/assigned tasks, edit/delete own tasks |
+| **Admin** | Full access: manage users, roles, all tasks, admin dashboard |
+
+---
+
+## 🗂️ Project Structure (Updated)
 
 TaskManagementSystem/
 ├── Controllers/
-│ └── TasksController.cs # CRUD + Dashboard method
-├── Data/
-│ └── ApplicationDbContext.cs # Database context
+│ ├── AccountController.cs ✅ Auth + Role assignment
+│ ├── AnalyticsController.cs ✅ User-specific analytics
+│ ├── AdminController.cs ✅ Admin panel
+│ ├── HomeController.cs ⚪ No change
+│ ├── NotificationsController.cs ✅ Dynamic notifications
+│ └── TasksController.cs ✅ Role-based tasks
 ├── Models/
-│ └── TaskItem.cs # Task data model (Title, Description, Status, Priority, DueDate, etc.)
+│ ├── ApplicationUser.cs ✅ Identity + custom fields
+│ ├── TaskItem.cs ✅ Task assignment fields
+│ ├── Notification.cs ✅ UserId field added
+│ └── ErrorViewModel.cs
+├── ViewModels/
+│ ├── RegisterViewModel.cs ✅ Role selection
+│ ├── LoginViewModel.cs
+│ └── AdminViewModels.cs ✅ User management
+├── Services/
+│ ├── INotificationService.cs
+│ ├── NotificationService.cs
+│ └── NotificationBackgroundService.cs
 ├── Views/
+│ ├── Account/
+│ │ ├── Register.cshtml ✅ Role dropdown
+│ │ └── Login.cshtml
+│ ├── Admin/
+│ │ ├── Index.cshtml ✅ User list
+│ │ ├── UserDetails.cshtml
+│ │ ├── EditUser.cshtml
+│ │ └── AllTasks.cshtml
 │ ├── Tasks/
-│ │ ├── Index.cshtml # Task list view (search, filter, CRUD links)
-│ │ ├── Create.cshtml # Add new task
-│ │ ├── Edit.cshtml # Edit task
-│ │ ├── Details.cshtml # Task details
-│ │ ├── Delete.cshtml # Delete task
-│ │ └── Dashboard.cshtml # Dashboard view with statistics and recent tasks
+│ │ ├── Index.cshtml ✅ Role-based display
+│ │ ├── Create.cshtml ✅ Assignment dropdown
+│ │ ├── Edit.cshtml
+│ │ └── Dashboard.cshtml
+│ ├── Profile/
+│ │ ├── Index.cshtml
+│ │ └── Edit.cshtml
+│ ├── Notifications/
+│ │ └── Index.cshtml
 │ └── Shared/
-│ └── _Layout.cshtml # Main layout with navbar
+│ └── _Navbar.cshtml ✅ Role badges + admin links
+├── Data/
+│ ├── ApplicationDbContext.cs ✅ Updated relationships
+│ └── DbSeeder.cs ✅ Seed roles & default admin
+├── Constants/
+│ └── Roles.cs ✅ Admin / Manager / User
+├── Migrations/ ✅ New
+├── Program.cs ✅ Role seeding
 ├── wwwroot/
-│ └── css/
-│ └── site.css # Updated styles
-├── appsettings.json # App settings
-└── Program.cs # Application entry point
+│ ├── css/
+│ ├── js/
+│ └── images/default-avatar.png
+├── appsettings.json
+└── README.md
 
-markdown
+yaml
 Copy code
 
-## 📋 Requirements
+---
 
-- [.NET SDK 7.0](https://dotnet.microsoft.com/download) or later
-- [SQL Server LocalDB](https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/sql-server-express-localdb) or SQL Server
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) or [VS Code](https://code.visualstudio.com/)
+## 🛠️ Database Changes
 
-## 🚀 Installation & Running
+### Tables & Columns
 
-### 1. Clone the Project
+**AspNetRoles** – Admin / Manager / User  
+**AspNetUserRoles** – Links users to roles  
 
+**Tasks**  
+- `CreatedByUserId` (FK) – Creator  
+- `AssignedToUserId` (FK) – Assigned user  
+
+**Notifications**  
+- `UserId` (FK) – Receiver  
+
+---
+
+## ⚡ Role-Based Task Permissions
+
+| Action | User | Manager | Admin |
+|--------|------|---------|-------|
+| View own tasks | ✅ | ✅ | ✅ |
+| View team tasks | ❌ | ✅ | ✅ |
+| View all tasks | ❌ | ❌ | ✅ |
+| Create tasks | ❌ | ✅ | ✅ |
+| Assign tasks | ❌ | ✅ | ✅ |
+| Delete own tasks | ❌ | ✅ | ✅ |
+| Delete any task | ❌ | ❌ | ✅ |
+| Manage users | ❌ | ❌ | ✅ |
+| Change roles | ❌ | ❌ | ✅ |
+| Access admin panel | ❌ | ❌ | ✅ |
+
+---
+
+## 🚀 Setup Instructions
+
+### Prerequisites
+- .NET 7.0 SDK
+- SQL Server / LocalDB
+- Visual Studio / VS Code / Rider
+
+### Installation
+1. Install NuGet packages:
 ```bash
-git clone https://github.com/haziim99/TaskManagementSystem.git
-cd TaskManagementSystem
-2. Restore Dependencies
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+dotnet add package Microsoft.AspNetCore.Identity.UI
+Create folders & files as per project structure
+
+Add Identity, Task, Notification, and ViewModel models
+
+Update Program.cs to seed roles and default admin
+
+Update ApplicationDbContext.cs for task assignments & relationships
+
+Apply migrations:
+
 bash
 Copy code
-dotnet restore
-3. Apply Migrations & Update Database
-bash
-Copy code
+dotnet ef migrations add AddRoleSystemAndTaskAssignment
 dotnet ef database update
-4. Run the Application
+Run app:
+
 bash
 Copy code
 dotnet run
-Then navigate to https://localhost:5001 (or the port shown in console).
+Open browser: https://localhost:5001
 
-📌 Notes
-The Dashboard page provides a quick overview of task statistics and recent tasks.
-
-All views are built using Bootstrap 5 with responsive design.
-
-Enums are used for TaskStatus and TaskPriority for clarity and maintainability.
-
-The project supports basic CRUD operations with validation on required fields.
-
+🔐 Default Admin Account
 pgsql
 Copy code
+Email: admin@taskmanagement.com
+Password: Admin@123
+Role: Admin
+⚠️ Change after first login!
+
+🧪 Testing Checklist (Combined)
+User
+ Register/Login as User
+
+ Can only see assigned tasks
+
+ Cannot create tasks or access admin panel
+
+ Can complete assigned tasks
+
+Manager
+ Register/Login as Manager
+
+ Can create and assign tasks
+
+ Can see created & assigned tasks
+
+ Cannot access admin panel
+
+Admin
+ Login with default admin
+
+ Access admin panel
+
+ View/edit/delete users
+
+ Change roles
+
+ See all tasks
+
+ Assign tasks to anyone
+
+Task Flow
+ Manager assigns task → User sees & completes → Manager/Admin notified
+
+ Role permissions enforced on Create/Edit/Delete tasks
+
+Security
+ Unauthorized access returns 403
+
+ Users cannot access others' tasks
+
+ Proper [Authorize(Roles="...")] attributes used
+
+Notifications & Analytics
+ Dynamic notifications work
+
+ Badge counts update
+
+ Analytics charts show performance correctly
+
+ Background service refreshes hourly
+
+✅ Success Criteria
+✅ Role-based access enforced
+
+✅ Tasks and notifications user-specific
+
+✅ Admin panel functions correctly
+
+✅ Managers can assign tasks
+
+✅ Users receive notifications
+
+✅ Profile & analytics data dynamic
+
+✅ No console or runtime errors
+
+📞 Troubleshooting
+Migration fails: Drop DB & re-run migration
+
+Login issues: Verify Identity tables & roles
+
+Navbar missing info: Check _Navbar.cshtml
+
+Notifications missing: Verify background service registration
+
+🎉 Completion
+System ready for production
+
+Roles: Admin, Manager, User
+
+Task assignment, notifications, analytics, admin panel fully functional
+
+Secure & role-based access control applied

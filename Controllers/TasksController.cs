@@ -1,28 +1,47 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagementSystem.Data;
 using TaskManagementSystem.Models;
+using TaskManagementSystem.Services;
 using MyTaskStatus = TaskManagementSystem.Models.TaskStatus;
 
 namespace TaskManagementSystem.Controllers
 {
+    [Authorize]
     public class TasksController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
 
-        public TasksController(ApplicationDbContext context)
+        public TasksController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            INotificationService notificationService)
         {
             _context = context;
+            _userManager = userManager;
+            _notificationService = notificationService;
+        }
+
+        private async Task<string> GetCurrentUserIdAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            return user?.Id ?? string.Empty;
         }
 
         // GET: Tasks
         public async Task<IActionResult> Index(string searchString, MyTaskStatus? status, TaskPriority? priority)
         {
-            var tasks = from t in _context.Tasks select t;
+            var userId = await GetCurrentUserIdAsync();
+            var tasks = _context.Tasks.Where(t => t.UserId == userId);
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                tasks = tasks.Where(t => t.Title.Contains(searchString) || t.Description.Contains(searchString));
+                tasks = tasks.Where(t => t.Title.Contains(searchString) ||
+                                         (t.Description != null && t.Description.Contains(searchString)));
             }
 
             if (status.HasValue)
@@ -48,7 +67,9 @@ namespace TaskManagementSystem.Controllers
             if (id == null)
                 return NotFound();
 
-            var taskItem = await _context.Tasks.FirstOrDefaultAsync(m => m.Id == id);
+            var userId = await GetCurrentUserIdAsync();
+            var taskItem = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (taskItem == null)
                 return NotFound();
 
@@ -56,7 +77,8 @@ namespace TaskManagementSystem.Controllers
         }
 
         // GET: Tasks/Create
-        public IActionResult Create()
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> Create()
         {
             var taskItem = new TaskItem
             {
@@ -64,22 +86,54 @@ namespace TaskManagementSystem.Controllers
                 Priority = TaskPriority.Medium,
                 IsCompleted = false
             };
+
+            // ??? ???? ?????????? ???????
+            var users = await _userManager.Users
+                .Select(u => new { u.Id, u.FullName, u.Email })
+                .ToListAsync();
+
+            ViewBag.Users = users;
             return View(taskItem);
         }
 
         // POST: Tasks/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,DueDate,Status,Priority")] TaskItem taskItem)
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> Create([Bind("Id,Title,Description,DueDate,Status,Priority,AssignedToUserId")] TaskItem taskItem)
         {
             if (ModelState.IsValid)
             {
+                var currentUserId = await GetCurrentUserIdAsync();
+                taskItem.CreatedByUserId = currentUserId; // ?? ??? ??????
+                taskItem.UserId = currentUserId; // ??????? ?? ????? ??????
                 taskItem.CreatedDate = DateTime.Now;
+
                 _context.Add(taskItem);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Task added successfully!";
+
+                // ????? ????? ?????? ??
+                if (!string.IsNullOrEmpty(taskItem.AssignedToUserId))
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        taskItem.AssignedToUserId,
+                        "New Task Assigned",
+                        $"You have been assigned: '{taskItem.Title}'",
+                        "info",
+                        taskItem.Id
+                    );
+                }
+
+                TempData["Success"] = "Task created and assigned successfully!";
                 return RedirectToAction(nameof(Index));
             }
+
+            // ?? ???? ?????? ????? ????? ???????
+            var users = await _userManager.Users
+                .Select(u => new { u.Id, u.FullName, u.Email })
+                .ToListAsync();
+            ViewBag.Users = users;
+
             return View(taskItem);
         }
 
@@ -89,7 +143,9 @@ namespace TaskManagementSystem.Controllers
             if (id == null)
                 return NotFound();
 
-            var taskItem = await _context.Tasks.FindAsync(id);
+            var userId = await GetCurrentUserIdAsync();
+            var taskItem = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (taskItem == null)
                 return NotFound();
 
@@ -99,10 +155,14 @@ namespace TaskManagementSystem.Controllers
         // POST: Tasks/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,CreatedDate,DueDate,Status,Priority,IsCompleted")] TaskItem taskItem)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,CreatedDate,DueDate,Status,Priority,IsCompleted,UserId")] TaskItem taskItem)
         {
             if (id != taskItem.Id)
                 return NotFound();
+
+            var userId = await GetCurrentUserIdAsync();
+            if (taskItem.UserId != userId)
+                return Forbid();
 
             if (ModelState.IsValid)
             {
@@ -130,7 +190,9 @@ namespace TaskManagementSystem.Controllers
             if (id == null)
                 return NotFound();
 
-            var taskItem = await _context.Tasks.FirstOrDefaultAsync(m => m.Id == id);
+            var userId = await GetCurrentUserIdAsync();
+            var taskItem = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (taskItem == null)
                 return NotFound();
 
@@ -142,7 +204,9 @@ namespace TaskManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var taskItem = await _context.Tasks.FindAsync(id);
+            var userId = await GetCurrentUserIdAsync();
+            var taskItem = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (taskItem != null)
             {
                 _context.Tasks.Remove(taskItem);
@@ -157,7 +221,9 @@ namespace TaskManagementSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> ToggleComplete(int id)
         {
-            var taskItem = await _context.Tasks.FindAsync(id);
+            var userId = await GetCurrentUserIdAsync();
+            var taskItem = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (taskItem == null)
                 return NotFound();
 
@@ -167,21 +233,36 @@ namespace TaskManagementSystem.Controllers
             _context.Update(taskItem);
             await _context.SaveChangesAsync();
 
+            if (taskItem.IsCompleted)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    userId,
+                    "Task Completed",
+                    $"You completed '{taskItem.Title}' successfully",
+                    "success",
+                    taskItem.Id
+                );
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
-        // Toggle Priority
+        // POST: Toggle Priority
         [HttpPost]
         public async Task<IActionResult> TogglePriority(int id)
         {
-            var taskItem = await _context.Tasks.FindAsync(id);
-            if (taskItem == null) return NotFound();
+            var userId = await GetCurrentUserIdAsync();
+            var taskItem = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
+            if (taskItem == null)
+                return NotFound();
 
             taskItem.Priority = taskItem.Priority switch
             {
                 TaskPriority.Low => TaskPriority.Medium,
                 TaskPriority.Medium => TaskPriority.High,
-                TaskPriority.High => TaskPriority.Low,
+                TaskPriority.High => TaskPriority.Urgent,
+                TaskPriority.Urgent => TaskPriority.Low,
                 _ => TaskPriority.Medium
             };
 
@@ -194,17 +275,20 @@ namespace TaskManagementSystem.Controllers
         // Dashboard
         public async Task<IActionResult> Dashboard()
         {
-            var totalTasks = await _context.Tasks.CountAsync();
-            var completedTasks = await _context.Tasks.CountAsync(t => t.Status == MyTaskStatus.Completed);
-            var inProgressTasks = await _context.Tasks.CountAsync(t => t.Status == MyTaskStatus.InProgress);
-            var overdueTasks = await _context.Tasks.CountAsync(t => t.DueDate < DateTime.Now && t.Status != MyTaskStatus.Completed);
+            var userId = await GetCurrentUserIdAsync();
+            var tasks = _context.Tasks.Where(t => t.UserId == userId);
+
+            var totalTasks = await tasks.CountAsync();
+            var completedTasks = await tasks.CountAsync(t => t.Status == MyTaskStatus.Completed);
+            var inProgressTasks = await tasks.CountAsync(t => t.Status == MyTaskStatus.InProgress);
+            var overdueTasks = await tasks.CountAsync(t => t.DueDate < DateTime.Now && t.Status != MyTaskStatus.Completed);
 
             ViewBag.TotalTasks = totalTasks;
             ViewBag.CompletedTasks = completedTasks;
             ViewBag.InProgressTasks = inProgressTasks;
             ViewBag.OverdueTasks = overdueTasks;
 
-            return View(await _context.Tasks.OrderByDescending(t => t.CreatedDate).ToListAsync());
+            return View(await tasks.OrderByDescending(t => t.CreatedDate).ToListAsync());
         }
 
         private bool TaskItemExists(int id)

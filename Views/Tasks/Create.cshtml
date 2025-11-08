@@ -23,9 +23,27 @@
 
                         <div class="mb-3">
                             <label asp-for="Description" class="form-label fw-bold">Description</label>
-                            <textarea asp-for="Description" class="form-control" rows="4" 
+                            <textarea asp-for="Description" class="form-control" rows="4"
                                       placeholder="Enter detailed description (optional)"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Assignment Dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-person-check"></i> Assign To
+                            </label>
+                            <select asp-for="AssignedToUserId" class="form-select">
+                                <option value="">-- Select User (Optional) --</option>
+                                @if (ViewBag.Users != null)
+                                {
+                                @foreach (var user in ViewBag.Users)
+                                    {
+                                <option value="@user.Id">@user.FullName (@user.Email)</option>
+                                    }
+                                }
+                            </select>
+                            <small class="text-muted">Leave empty if not assigning to anyone</small>
                         </div>
 
                         <div class="row">
