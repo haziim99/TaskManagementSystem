@@ -36,7 +36,7 @@ namespace TaskManagementSystem.Controllers
         public async Task<IActionResult> Index(string searchString, MyTaskStatus? status, TaskPriority? priority)
         {
             var userId = await GetCurrentUserIdAsync();
-            var tasks = _context.Tasks.Where(t => t.UserId == userId);
+            var tasks = _context.Tasks.Where(t => t.AssignedToUserId == userId);
 
             if (!string.IsNullOrEmpty(searchString))
             {
